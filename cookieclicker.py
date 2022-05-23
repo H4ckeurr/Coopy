@@ -4,6 +4,7 @@ from tkinter import messagebox
 from random import randint as random
 from os import getlogin
 from time import time, sleep
+import openpyxl
 
 #Main window declaration and configuration
 gameWindow = tk.Tk()
@@ -16,9 +17,10 @@ gold = 0
 
 "------------------------------------FUNCTION------------------------------------"
 def activateCheatCode():
-    global cheatCode, gold
+    global cheatCode, gold, cheatCodeUsage
     if (cheatCode.get() == "iamrich"):
         gold = 1000000
+        cheatCodeUsage += 1
         messagebox.showinfo("Succès", "Code de triche activé")
     else:
         messagebox.showerror("Erreur", "Code inconnu")
@@ -154,7 +156,7 @@ def upgradeAutoClicker(event):
     autoclickerLabel.config(text=f"Ouvriers : {autoClickerAmount}")
 
 def autoClicker(event):
-    global totalCookies, goldUpgradeNumber, moreGold, gold, goldsForAutoClicker, autoClickerAmount, startTime, shopGoldLabel
+    global totalCookies, goldUpgradeNumber, moreGold, gold, goldsForAutoClicker, autoClickerAmount, startTime, shopGoldLabel, autoclickerLabel
     if ((time() - startTime) > 1):
         startTime = time()
         print(f"{gold}")
@@ -163,6 +165,8 @@ def autoClicker(event):
         counterLabel.config(text=f"Cookies mangés : {totalCookies}")
         goldLabel.config(text=f"Or : {format_number(gold)}")
         shopGoldLabel.config(text=f"Or : {format_number(gold)}")
+        autoclickerLabel.config(text=f"Ouvriers : {autoClickerAmount}")
+        
 
 # This upgrades the max amount of gold that can be generated
 def upgradeGold(event):
@@ -199,8 +203,67 @@ def openShop():
     showShopFrame()
 
 # This updates the cookies counter on the main window
+
 def setCounter(args):
     counterLabel.config(text=f"Cookies mangés : {totalCookies}")
+
+def loadFeature():
+    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, counterLabel
+    workbook = openpyxl.load_workbook('save.xlsx')
+    ws = workbook.active
+    gold = ws['A2'].value
+    totalCookies = ws['B2'].value
+    goldUpgradeNumber = ws['C2'].value
+    autoClickerAmount = ws['D2'].value
+    goldsForAutoClicker = ws['F2'].value
+    goldsForGoldUpgrade = ws['G2'].value
+    cheatCodeUsage = ws['J2'].value
+    print("awawa")
+    counterLabel.config(text=f"Cookies mangés : {totalCookies}")
+
+    
+def saveFeature():
+    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage
+    try:
+        workbook = openpyxl.load_workbook('save.xlsx')
+        ws = workbook.active
+        ws['A1'] = "Gold"
+        ws['A2'] = gold
+        ws['B1'] = "Cookies"
+        ws['B2'] = totalCookies
+        ws['C1'] = "Click power"
+        ws['C2'] = goldUpgradeNumber
+        ws['D1'] = "Amount of Autoclickers"
+        ws['D2'] = autoClickerAmount
+        ws['F1'] = "Autoclicker Price"
+        ws['F2'] = goldsForAutoClicker
+        ws['G1'] = "GoldUpgrade Price"
+        ws['G2'] = goldsForGoldUpgrade
+        ws['J1'] = "Amount of cheat codes used"
+        ws['J2'] = cheatCodeUsage
+        workbook.save('save.xlsx')
+        print("awa")
+    except:
+        workbook = openpyxl.Workbook()
+        ws = workbook.active
+        ws['A1'] = "Gold"
+        ws['A2'] = 0
+        ws['B1'] = "Cookies"
+        ws['B2'] = 0
+        ws['C1'] = "Click power"
+        ws['C2'] = 5
+        ws['D1'] = "Amount of autoclickers"
+        ws['D2'] = 0
+        ws['F1'] = "Autoclicker Price"
+        ws['F2'] = 50
+        ws['G1'] = "GoldUpgrade Price"
+        ws['G2'] = 10
+        ws['J1'] = "Amount of cheat codes used"
+        ws['J2'] = 0
+        workbook.save(filename = 'save.xlsx')
+        print("AWA")
+
+
 
 "------------------------------------VARIABLES------------------------------------"
 #Declaring main logic variables
@@ -238,6 +301,7 @@ shopGoldLabel.grid(column=1, row=0, sticky=tk.W, padx=5, pady=5)
 homeImage = tk.PhotoImage(file="home.png")
 shopImage = tk.PhotoImage(file="shop.png")
 settingsImage = tk.PhotoImage(file="settings.png")
+saveImage = tk.PhotoImage(file="save.png")
 
 gameWindow.update() #for the width to get updated
 
@@ -264,6 +328,11 @@ shopButton.grid(column=0, row=1)
 settingsButton = tk.Button(sideMenu, image=settingsImage, bg="orange", relief=tk.FLAT, command=showSettingsFrame)
 settingsButton.grid(column=0, row=2, pady=10)
 
+saveButton = tk.Button(settingsFrame, text="Sauvegarder!", command=saveFeature)
+saveButton.grid(column=0, row=2, pady=10)
+
+loadButton = tk.Button(settingsFrame, text="Charger la sauvegarde!", command=loadFeature)
+loadButton.grid(column=0, row=3, pady=10)
 
 counterLabel = tk.Label(infosFrame, text="Cookies mangés : 0")
 counterLabel.grid(column=1, row=2, sticky=tk.W, padx=5, pady=5)
@@ -277,12 +346,14 @@ autoclickerLabel.grid(column=1, row=4, sticky=tk.W, padx=5, pady=5)
 "------------------------------------CODE------------------------------------"
 
 totalCookies = 0
-randomAmountOfGold = None
+
+randomAmountOfGold = 0
 moreGold = None
 moreGoldInfoLabel = None
 moreAutoclickerInfoLabel = None
 moreAutoClicker = None
 goldUpgradeNumber = 5
+cheatCodeUsage = 0
 
 #Declaring upgrade prices variables
 goldsForGoldUpgrade = 10
