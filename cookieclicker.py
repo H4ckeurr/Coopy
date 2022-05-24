@@ -14,6 +14,7 @@ gameWindow.geometry("500x430")
 gameWindow.resizable(False, False)
 
 startTime = time()
+saveTime = time()
 
 gold = 0
 
@@ -221,13 +222,14 @@ def setCounter(args):
     counterLabel.config(text=f"{totalCookies}")
 
 def loadFeature():
-    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, counterLabel
+    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, counterLabel, saveInterval
     workbook = openpyxl.load_workbook('save.xlsx')
     ws = workbook.active
     gold = ws['A2'].value
     totalCookies = ws['B2'].value
     goldUpgradeNumber = ws['C2'].value
     autoClickerAmount = ws['D2'].value
+    saveInterval = ws['E2'].value
     goldsForAutoClicker = ws['F2'].value
     goldsForGoldUpgrade = ws['G2'].value
     cheatCodeUsage = ws['J2'].value
@@ -236,50 +238,51 @@ def loadFeature():
 
     
 def saveFeature():
-    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, saveInterval
-    threading.Timer(saveInterval, saveFeature).start()
-    try:
-        workbook = openpyxl.load_workbook('save.xlsx')
-        ws = workbook.active
-        ws['A1'] = "Gold"
-        ws['A2'] = gold
-        ws['B1'] = "Cookies"
-        ws['B2'] = totalCookies
-        ws['C1'] = "Click power"
-        ws['C2'] = goldUpgradeNumber
-        ws['D1'] = "Amount of Autoclickers"
-        ws['D2'] = autoClickerAmount
-        ws['E1'] = "Save interval"
-        ws['E2'] = saveInterval
-        ws['F1'] = "Autoclicker Price"
-        ws['F2'] = goldsForAutoClicker
-        ws['G1'] = "GoldUpgrade Price"
-        ws['G2'] = goldsForGoldUpgrade
-        ws['J1'] = "Amount of cheat codes used"
-        ws['J2'] = cheatCodeUsage
-        workbook.save('save.xlsx')
-        print("saved")
-    except:
-        workbook = openpyxl.Workbook()
-        ws = workbook.active
-        ws['A1'] = "Gold"
-        ws['A2'] = 0
-        ws['B1'] = "Cookies"
-        ws['B2'] = 0
-        ws['C1'] = "Click power"
-        ws['C2'] = 5
-        ws['D1'] = "Amount of autoclickers"
-        ws['D2'] = 0
-        ws['E1'] = "Save interval"
-        ws['E2'] = 30
-        ws['F1'] = "Autoclicker Price"
-        ws['F2'] = 50
-        ws['G1'] = "GoldUpgrade Price"
-        ws['G2'] = 10
-        ws['J1'] = "Amount of cheat codes used"
-        ws['J2'] = 0
-        workbook.save(filename = 'save.xlsx')
-        print("created")
+    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, saveInterval,saveTime
+    if((time() - saveTime) > saveInterval):
+        saveTime = time()
+        try:
+            workbook = openpyxl.load_workbook('save.xlsx')
+            ws = workbook.active
+            ws['A1'] = "Gold"
+            ws['A2'] = gold
+            ws['B1'] = "Cookies"
+            ws['B2'] = totalCookies
+            ws['C1'] = "Click power"
+            ws['C2'] = goldUpgradeNumber
+            ws['D1'] = "Amount of Autoclickers"
+            ws['D2'] = autoClickerAmount
+            ws['E1'] = "Save interval"
+            ws['E2'] = saveInterval
+            ws['F1'] = "Autoclicker Price"
+            ws['F2'] = goldsForAutoClicker
+            ws['G1'] = "GoldUpgrade Price"
+            ws['G2'] = goldsForGoldUpgrade
+            ws['J1'] = "Amount of cheat codes used"
+            ws['J2'] = cheatCodeUsage
+            workbook.save('save.xlsx')
+            print("saved")
+        except:
+            workbook = openpyxl.Workbook()
+            ws = workbook.active
+            ws['A1'] = "Gold"
+            ws['A2'] = 0
+            ws['B1'] = "Cookies"
+            ws['B2'] = 0
+            ws['C1'] = "Click power"
+            ws['C2'] = 5
+            ws['D1'] = "Amount of autoclickers"
+            ws['D2'] = 0
+            ws['E1'] = "Save interval"
+            ws['E2'] = 30
+            ws['F1'] = "Autoclicker Price"
+            ws['F2'] = 50
+            ws['G1'] = "GoldUpgrade Price"
+            ws['G2'] = 10
+            ws['J1'] = "Amount of cheat codes used"
+            ws['J2'] = 0
+            workbook.save(filename = 'save.xlsx')
+            print("created")
 
 
 
@@ -379,6 +382,8 @@ warningLabel.grid(column=0, row=2, sticky=tk.W, padx=5, pady=5)
 creditsButton = tk.Button(settingsFrame, text="Remerciements/Credits", command=showCredits)
 creditsButton.grid(column=0, row=5, sticky=tk.W, padx=5, pady=5)
 
+loadButton = tk.Button(settingsFrame, text="Charger la sauvegarde!", command=loadFeature)
+loadButton.grid(column=0, row=3, pady=10)
 
 "------------------------------------CODE------------------------------------"
 
@@ -426,6 +431,7 @@ def test():
 #changed from gameWindow.gameloop to this because allows to make our own game loop
 while 1:
     autoClicker(gameWindow)
+    saveFeature()
     gameWindow.update_idletasks()
     gameWindow.update()
     sleep(0.01)
