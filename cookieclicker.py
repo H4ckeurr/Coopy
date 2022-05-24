@@ -120,7 +120,7 @@ def showShopFrame():
     moreAutoclickerUpgrade.grid(column=1, row=1, sticky=tk.E, padx=40, pady=5)
 
     moreGoldInfoLabel = tk.Label(moreGoldUpgrade,
-                                 text=f"Augemente l'or par clic\nActuel : {goldUpgradeNumber} or par clic\nCoûte : {goldsForGoldUpgrade} or")
+                                 text=f"Augemente l'or par clic\nActuel : {format_number(goldUpgradeNumber)} or par clic\nCoûte : {format_number(goldsForGoldUpgrade)} or")
     moreGoldInfoLabel.grid(column=1, row=0, sticky=tk.W, padx=5, pady=5)
     moreGold = tk.Button(moreGoldUpgrade, text=f"Améliorer", width=15)
     moreGold.grid(column=1, row=1, sticky=tk.S, padx=5, pady=5)
@@ -128,7 +128,7 @@ def showShopFrame():
     moreGold.bind("<Leave>", leave)
 
     moreAutoclickerInfoLabel = tk.Label(moreAutoclickerUpgrade,
-                                        text=f"Un ouvrier qui génère 1 d'or/s\nActuel : {autoClickerAmount} or/s\nCoûte : {goldsForAutoClicker} or")
+                                        text=f"Un ouvrier qui génère 1 d'or/s\nActuel : {format_number(autoClickerAmount)} or/s\nCoûte : {format_number(goldsForAutoClicker)} or")
     moreAutoclickerInfoLabel.grid(column=1, row=0, sticky=tk.W, padx=5, pady=5)
     moreAutoClicker = tk.Button(moreAutoclickerUpgrade, text=f"Améliorer", width=20)
     moreAutoClicker.grid(column=1, row=1, sticky=tk.W, padx=5, pady=5)
@@ -155,7 +155,7 @@ def incr(event):
     if (luck > 50):
         gold += randomAmountOfGold
     totalCookies += 1
-    counterLabel.config(text=f"{totalCookies}")
+    counterLabel.config(text=f"{format_number(totalCookies)}")
     goldLabel.config(text=f"{format_number(gold)}")
 
 def upgradeAutoClicker(event):
@@ -166,8 +166,8 @@ def upgradeAutoClicker(event):
         goldsForAutoClicker = int(goldsForAutoClicker)
         autoClickerAmount += 1
     moreAutoclickerInfoLabel.config(
-        text=f"Un ouvrier qui génère 1 d'or/s\nActuel : {autoClickerAmount} or/s\nCoûte : {goldsForAutoClicker} or")
-    autoclickerLabel.config(text=f"{autoClickerAmount}")
+        text=f"Un ouvrier qui génère 1 d'or/s\nActuel : {format_number(autoClickerAmount)} or/s\nCoûte : {format_number(goldsForAutoClicker)} or")
+    autoclickerLabel.config(text=f"{format_number(autoClickerAmount)}")
 
 def autoClicker(event):
     global totalCookies, goldUpgradeNumber, moreGold, gold, goldsForAutoClicker, autoClickerAmount, startTime, shopGoldLabel, autoclickerLabel
@@ -176,10 +176,10 @@ def autoClicker(event):
         print(f"{gold}")
         totalCookies += autoClickerAmount
         gold += autoClickerAmount
-        counterLabel.config(text=f"{totalCookies}")
+        counterLabel.config(text=f"{format_number(totalCookies)}")
         goldLabel.config(text=f"{format_number(gold)}")
         shopGoldLabel.config(text=f"{format_number(gold)}")
-        autoclickerLabel.config(text=f"{autoClickerAmount}")
+        autoclickerLabel.config(text=f"{format_number(autoClickerAmount)}")
         
 
 # This upgrades the max amount of gold that can be generated
@@ -191,14 +191,15 @@ def upgradeGold(event):
         goldsForGoldUpgrade *= 2.5
         goldsForGoldUpgrade = int(goldsForGoldUpgrade)
     moreGoldInfoLabel.config(
-        text=f"Augemente l'or par clic\nActuel : {goldUpgradeNumber} or par clic\nCoûte : {goldsForGoldUpgrade} or")
-    counterLabel.config(text=f"{totalCookies}")
+        text=f"Augemente l'or par clic\nActuel : {format_number(goldUpgradeNumber)} or par clic\nCoûte : {format_number(goldsForGoldUpgrade)} or")
+    counterLabel.config(text=f"{format_number(totalCookies)}")
     goldLabel.config(text=f"{format_number(gold)}")
 
 #This formats the thousands numbers to letters and also rounds them to 2 numbers after the comma
 def format_number(num):
+    global formatNumbers
     sign = ''
-    if(num < 1000):
+    if(num < 1000 or formatNumbers.get() == 0):
         num = num
     else:
         metric = {'T': 1000000000000, 'B': 1000000000, 'M': 1000000, 'K': 1000, '': 1}
@@ -219,7 +220,7 @@ def openShop():
 # This updates the cookies counter on the main window
 
 def setCounter(args):
-    counterLabel.config(text=f"{totalCookies}")
+    counterLabel.config(text=f"{format_number(totalCookies)}")
 
 def loadFeature():
     global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, counterLabel, saveInterval
@@ -308,6 +309,12 @@ savingFrame.grid(column=0, row=0, sticky=tk.W, pady=10)
 saveIntervalSlider = tk.Scale(savingFrame, from_=min(valuelist), to=max(valuelist), command=setSaveInterval, orient=tk.HORIZONTAL)
 saveIntervalSlider.grid(column=0, row=1, sticky=tk.W, padx=5, pady=5)
 saveIntervalSlider.set(saveInterval)
+
+#Various settings
+formatNumbers = tk.IntVar()
+formatNumbers.set(1)
+formatNumbersCB = tk.Checkbutton(settingsFrame, text="Formatter les nombres", onvalue=1, offvalue=0, variable=formatNumbers)
+formatNumbersCB.grid(column=0, row=6, sticky=tk.W, padx=5, pady=5)
 
 #Cheat Code Category
 cheatFrame = tk.Frame(settingsFrame, borderwidth=2, relief=tk.GROOVE)
@@ -423,10 +430,10 @@ sideMenu.grid_propagate(False)
 End side menu
 """
 
-#saveFeature()
-
-def test():
-    print("saved")
+try:
+    loadFeature()
+except Exception as e:
+    print("Erreur lors du chargement de la sauvegarde: %s" % e)
 
 #changed from gameWindow.gameloop to this because allows to make our own game loop
 while 1:
