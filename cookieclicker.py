@@ -223,7 +223,7 @@ def setCounter(args):
     counterLabel.config(text=f"{format_number(totalCookies)}")
 
 def loadFeature():
-    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, counterLabel, saveInterval
+    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, counterLabel, saveInterval, formatNumbers
     workbook = openpyxl.load_workbook('save.xlsx')
     ws = workbook.active
     gold = ws['A2'].value
@@ -233,13 +233,14 @@ def loadFeature():
     saveInterval = ws['E2'].value
     goldsForAutoClicker = ws['F2'].value
     goldsForGoldUpgrade = ws['G2'].value
+    formatNumbers.set(ws['H2'].value)
     cheatCodeUsage = ws['J2'].value
     print("loaded")
     counterLabel.config(text=f"{totalCookies}")
 
     
 def saveFeature():
-    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, saveInterval,saveTime
+    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, saveInterval,saveTime, formatNumbers
     if((time() - saveTime) > saveInterval):
         saveTime = time()
         try:
@@ -259,6 +260,8 @@ def saveFeature():
             ws['F2'] = goldsForAutoClicker
             ws['G1'] = "GoldUpgrade Price"
             ws['G2'] = goldsForGoldUpgrade
+            ws['H1'] = "Format Numbers"
+            ws['H2'] = formatNumbers.get()
             ws['J1'] = "Amount of cheat codes used"
             ws['J2'] = cheatCodeUsage
             workbook.save('save.xlsx')
@@ -280,6 +283,8 @@ def saveFeature():
             ws['F2'] = 50
             ws['G1'] = "GoldUpgrade Price"
             ws['G2'] = 10
+            ws['H1'] = "Format Numbers"
+            ws['H2'] = 1
             ws['J1'] = "Amount of cheat codes used"
             ws['J2'] = 0
             workbook.save(filename = 'save.xlsx')
@@ -310,24 +315,22 @@ saveIntervalSlider = tk.Scale(savingFrame, from_=min(valuelist), to=max(valuelis
 saveIntervalSlider.grid(column=0, row=1, sticky=tk.W, padx=5, pady=5)
 saveIntervalSlider.set(saveInterval)
 
-#Various settings
+#Global settings
+globalSettingsFrame = tk.Frame(settingsFrame, borderwidth=2, relief=tk.GROOVE)
+globalSettingsFrame.grid(column=0, row=1, sticky=tk.W, padx=5, pady=5)
 formatNumbers = tk.IntVar()
 formatNumbers.set(1)
-formatNumbersCB = tk.Checkbutton(settingsFrame, text="Formatter les nombres", onvalue=1, offvalue=0, variable=formatNumbers)
-formatNumbersCB.grid(column=0, row=6, sticky=tk.W, padx=5, pady=5)
+formatNumbersCB = tk.Checkbutton(globalSettingsFrame, text="Formatter les nombres", onvalue=1, offvalue=0, variable=formatNumbers)
+formatNumbersCB.grid(column=0, row=1, sticky=tk.W, padx=5, pady=5)
 
 #Cheat Code Category
 cheatFrame = tk.Frame(settingsFrame, borderwidth=2, relief=tk.GROOVE)
-cheatFrame.grid(column=0, row=1, sticky=tk.W, pady=10)
-
+cheatFrame.grid(column=0, row=2, sticky=tk.W, pady=10)
 cheatLabel = tk.Label(cheatFrame, text=f"Activer code de triche")
 cheatLabel.grid(column=0, row=0, sticky=tk.W, padx=5, pady=5)
-
 cheatCode = tk.StringVar()
 cheatEntry = tk.Entry(cheatFrame, textvariable=cheatCode)
 cheatEntry.grid(column=1, row=0, sticky=tk.W, padx=5, pady=5)
-
-#CheatCode Button
 cheatButton = tk.Button(cheatFrame, text=f"Activer", command=activateCheatCode)
 cheatButton.grid(column=1, row=1, sticky=tk.W, padx=5, pady=5)
 
@@ -389,9 +392,11 @@ warningLabel.grid(column=0, row=2, sticky=tk.W, padx=5, pady=5)
 creditsButton = tk.Button(settingsFrame, text="Remerciements/Credits", command=showCredits)
 creditsButton.grid(column=0, row=5, sticky=tk.W, padx=5, pady=5)
 
+"""
+Dude stop with that button already lmafo
 loadButton = tk.Button(settingsFrame, text="Charger la sauvegarde!", command=loadFeature)
 loadButton.grid(column=0, row=3, pady=10)
-
+"""
 "------------------------------------CODE------------------------------------"
 
 totalCookies = 0
