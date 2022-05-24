@@ -5,6 +5,7 @@ from random import randint as random
 from os import getlogin
 from time import time, sleep
 import openpyxl
+import threading
 
 #Main window declaration and configuration
 gameWindow = tk.Tk()
@@ -13,7 +14,10 @@ gameWindow.geometry("500x430")
 gameWindow.resizable(False, False)
 
 startTime = time()
+
 gold = 0
+
+saveInterval = 30
 
 "------------------------------------FUNCTION------------------------------------"
 def activateCheatCode():
@@ -25,6 +29,12 @@ def activateCheatCode():
     else:
         messagebox.showerror("Erreur", "Code inconnu")
 
+valuelist = [2, 10, 30, 45, 60, 120]
+
+def setSaveInterval(value):
+    global saveIntervalSlider, valuelist, saveInterval
+    saveInterval = min(valuelist, key=lambda x:abs(x-int(value)))
+    saveIntervalSlider.set(saveInterval)
 
 # Expand the side menu, increasing the width by 10 every 5ms, once fully expanded set expanded to true
 def expand():
@@ -63,6 +73,9 @@ def fill():
         shopButton.config(image=shopImage, width=25)
         settingsButton.config(image=settingsImage, width=25)
         credits.config(text=f"")
+
+def showCredits():
+    messagebox.showinfo("Crédits et Remerciements", "Ressouces :\nIcônes : icons8.com\nCookie principal : Google Images\nQuelques bouts de code : stackoverflow.com\n\nRemerciements :\numi : Support moral <3")
 
 """
 Depending on if you have enough gold or not the button will change to red or green when hovered, seems to only work on Windows tho so I did not implement it
@@ -141,8 +154,8 @@ def incr(event):
     if (luck > 50):
         gold += randomAmountOfGold
     totalCookies += 1
-    counterLabel.config(text=f"Cookies mangés : {totalCookies}")
-    goldLabel.config(text=f"Or : {format_number(gold)}")
+    counterLabel.config(text=f"{totalCookies}")
+    goldLabel.config(text=f"{format_number(gold)}")
 
 def upgradeAutoClicker(event):
     global goldUpgradeNumber, moreGold, gold, goldsForAutoClicker, autoClickerAmount, moreAutoclickerInfoLabel
@@ -153,7 +166,7 @@ def upgradeAutoClicker(event):
         autoClickerAmount += 1
     moreAutoclickerInfoLabel.config(
         text=f"Un ouvrier qui génère 1 d'or/s\nActuel : {autoClickerAmount} or/s\nCoûte : {goldsForAutoClicker} or")
-    autoclickerLabel.config(text=f"Ouvriers : {autoClickerAmount}")
+    autoclickerLabel.config(text=f"{autoClickerAmount}")
 
 def autoClicker(event):
     global totalCookies, goldUpgradeNumber, moreGold, gold, goldsForAutoClicker, autoClickerAmount, startTime, shopGoldLabel, autoclickerLabel
@@ -162,10 +175,10 @@ def autoClicker(event):
         print(f"{gold}")
         totalCookies += autoClickerAmount
         gold += autoClickerAmount
-        counterLabel.config(text=f"Cookies mangés : {totalCookies}")
-        goldLabel.config(text=f"Or : {format_number(gold)}")
-        shopGoldLabel.config(text=f"Or : {format_number(gold)}")
-        autoclickerLabel.config(text=f"Ouvriers : {autoClickerAmount}")
+        counterLabel.config(text=f"{totalCookies}")
+        goldLabel.config(text=f"{format_number(gold)}")
+        shopGoldLabel.config(text=f"{format_number(gold)}")
+        autoclickerLabel.config(text=f"{autoClickerAmount}")
         
 
 # This upgrades the max amount of gold that can be generated
@@ -178,8 +191,8 @@ def upgradeGold(event):
         goldsForGoldUpgrade = int(goldsForGoldUpgrade)
     moreGoldInfoLabel.config(
         text=f"Augemente l'or par clic\nActuel : {goldUpgradeNumber} or par clic\nCoûte : {goldsForGoldUpgrade} or")
-    counterLabel.config(text=f"Cookies mangés : {totalCookies}")
-    goldLabel.config(text=f"Or : {format_number(gold)}")
+    counterLabel.config(text=f"{totalCookies}")
+    goldLabel.config(text=f"{format_number(gold)}")
 
 #This formats the thousands numbers to letters and also rounds them to 2 numbers after the comma
 def format_number(num):
@@ -205,7 +218,7 @@ def openShop():
 # This updates the cookies counter on the main window
 
 def setCounter(args):
-    counterLabel.config(text=f"Cookies mangés : {totalCookies}")
+    counterLabel.config(text=f"{totalCookies}")
 
 def loadFeature():
     global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, counterLabel
@@ -218,12 +231,13 @@ def loadFeature():
     goldsForAutoClicker = ws['F2'].value
     goldsForGoldUpgrade = ws['G2'].value
     cheatCodeUsage = ws['J2'].value
-    print("awawa")
-    counterLabel.config(text=f"Cookies mangés : {totalCookies}")
+    print("loaded")
+    counterLabel.config(text=f"{totalCookies}")
 
     
 def saveFeature():
-    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage
+    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, saveInterval
+    threading.Timer(saveInterval, saveFeature).start()
     try:
         workbook = openpyxl.load_workbook('save.xlsx')
         ws = workbook.active
@@ -235,6 +249,8 @@ def saveFeature():
         ws['C2'] = goldUpgradeNumber
         ws['D1'] = "Amount of Autoclickers"
         ws['D2'] = autoClickerAmount
+        ws['E1'] = "Save interval"
+        ws['E2'] = saveInterval
         ws['F1'] = "Autoclicker Price"
         ws['F2'] = goldsForAutoClicker
         ws['G1'] = "GoldUpgrade Price"
@@ -242,7 +258,7 @@ def saveFeature():
         ws['J1'] = "Amount of cheat codes used"
         ws['J2'] = cheatCodeUsage
         workbook.save('save.xlsx')
-        print("awa")
+        print("saved")
     except:
         workbook = openpyxl.Workbook()
         ws = workbook.active
@@ -254,6 +270,8 @@ def saveFeature():
         ws['C2'] = 5
         ws['D1'] = "Amount of autoclickers"
         ws['D2'] = 0
+        ws['E1'] = "Save interval"
+        ws['E2'] = 30
         ws['F1'] = "Autoclicker Price"
         ws['F2'] = 50
         ws['G1'] = "GoldUpgrade Price"
@@ -261,7 +279,7 @@ def saveFeature():
         ws['J1'] = "Amount of cheat codes used"
         ws['J2'] = 0
         workbook.save(filename = 'save.xlsx')
-        print("AWA")
+        print("created")
 
 
 
@@ -278,19 +296,29 @@ infosFrame = tk.Frame(gameWindow, borderwidth=2, relief=tk.GROOVE)
 infosFrame.grid(column=1, row=0, sticky=tk.S, padx=5, pady=30)
 
 settingsFrame = tk.Frame(gameWindow, borderwidth=2, relief=tk.GROOVE)
-settingsFrame.grid(column=1, row=0, sticky=tk.S, padx=5, pady=30)
+settingsFrame.grid(column=1, row=0, sticky=tk.W, padx=5, pady=0)
 settingsFrame.grid_remove()
 
-cheatLabel = tk.Label(settingsFrame, text=f"Activer code de triche")
-cheatLabel.grid(column=0, row=0, sticky=tk.W, padx=5, pady=5)
+#Saves
+savingFrame = tk.Frame(settingsFrame, borderwidth=2, relief=tk.GROOVE)
+savingFrame.grid(column=0, row=0, sticky=tk.W, pady=10)
+saveIntervalSlider = tk.Scale(savingFrame, from_=min(valuelist), to=max(valuelist), command=setSaveInterval, orient=tk.HORIZONTAL)
+saveIntervalSlider.grid(column=0, row=1, sticky=tk.W, padx=5, pady=5)
+saveIntervalSlider.set(saveInterval)
 
 #Cheat Code Category
+cheatFrame = tk.Frame(settingsFrame, borderwidth=2, relief=tk.GROOVE)
+cheatFrame.grid(column=0, row=1, sticky=tk.W, pady=10)
+
+cheatLabel = tk.Label(cheatFrame, text=f"Activer code de triche")
+cheatLabel.grid(column=0, row=0, sticky=tk.W, padx=5, pady=5)
+
 cheatCode = tk.StringVar()
-cheatEntry = tk.Entry(settingsFrame, textvariable=cheatCode)
+cheatEntry = tk.Entry(cheatFrame, textvariable=cheatCode)
 cheatEntry.grid(column=1, row=0, sticky=tk.W, padx=5, pady=5)
 
 #CheatCode Button
-cheatButton = tk.Button(settingsFrame, text=f"Activer", command=activateCheatCode)
+cheatButton = tk.Button(cheatFrame, text=f"Activer", command=activateCheatCode)
 cheatButton.grid(column=1, row=1, sticky=tk.W, padx=5, pady=5)
 
 #Shop display
@@ -298,10 +326,12 @@ shopGoldLabel = tk.Label(itemShop, text=f"Or : {format_number(gold)}")
 shopGoldLabel.grid(column=1, row=0, sticky=tk.W, padx=5, pady=5)
 
 # Define the icons to be shown
-homeImage = tk.PhotoImage(file="home.png")
-shopImage = tk.PhotoImage(file="shop.png")
-settingsImage = tk.PhotoImage(file="settings.png")
-saveImage = tk.PhotoImage(file="save.png")
+homeImage = tk.PhotoImage(file="assets/homeIcon.png")
+shopImage = tk.PhotoImage(file="assets/shopIcon.png")
+settingsImage = tk.PhotoImage(file="assets/settingsIcon.png")
+goldImage = tk.PhotoImage(file="assets/goldIcon.png")
+worker1Image = tk.PhotoImage(file="assets/workerIcon.png")
+cookie1Image = tk.PhotoImage(file="assets/cookieIcon.png")
 
 gameWindow.update() #for the width to get updated
 
@@ -312,7 +342,19 @@ sideMenu.grid(column=0, row=0)
 credits = tk.Label(sideMenu, text=f"", bg="orange")
 credits.grid(column=0, row=3, padx=10, pady=200)
 
-photo = tk.PhotoImage(file="cookie.png")
+counterLabel = tk.Label(infosFrame, text="0")
+counterLabel.grid(column=1, row=2, sticky=tk.W, padx=30, pady=5)
+cookieImageLabel = tk.Label(infosFrame, image=cookie1Image).grid(column=1, row=2, sticky=tk.W, padx=5)
+
+goldLabel = tk.Label(infosFrame, text="0")
+goldLabel.grid(column=1, row=3, sticky=tk.W, padx=30, pady=5)
+goldImageLabel = tk.Label(infosFrame, image=goldImage).grid(column=1, row=3, sticky=tk.W, padx=5)
+
+autoclickerLabel = tk.Label(infosFrame, text="0")
+autoclickerLabel.grid(column=1, row=4, sticky=tk.W, padx=30, pady=5)
+autoclickerImageLabel = tk.Label(infosFrame, image=worker1Image).grid(column=1, row=4, sticky=tk.W, padx=5)
+
+photo = tk.PhotoImage(file="assets/cookie.png")
 
 incrButton = tk.Button(mainFrame, image=photo, relief=tk.FLAT, compound=tk.TOP, width=256, height=266)
 incrButton.grid(column=1, row=1, sticky=tk.W, padx=15, pady=5)
@@ -328,20 +370,15 @@ shopButton.grid(column=0, row=1)
 settingsButton = tk.Button(sideMenu, image=settingsImage, bg="orange", relief=tk.FLAT, command=showSettingsFrame)
 settingsButton.grid(column=0, row=2, pady=10)
 
-saveButton = tk.Button(settingsFrame, text="Sauvegarder!", command=saveFeature)
-saveButton.grid(column=0, row=2, pady=10)
+saveLabel = tk.Label(savingFrame, text="Intervale de sauvegarde(en secondes)")
+saveLabel.grid(column=0, row=0, sticky=tk.W, padx=5, pady=5)
 
-loadButton = tk.Button(settingsFrame, text="Charger la sauvegarde!", command=loadFeature)
-loadButton.grid(column=0, row=3, pady=10)
+warningLabel = tk.Label(savingFrame, text="La valeur minimal (2s) n'est PAS RECOMMANDÉE!!!")
+warningLabel.grid(column=0, row=2, sticky=tk.W, padx=5, pady=5)
 
-counterLabel = tk.Label(infosFrame, text="Cookies mangés : 0")
-counterLabel.grid(column=1, row=2, sticky=tk.W, padx=5, pady=5)
+creditsButton = tk.Button(settingsFrame, text="Remerciements/Credits", command=showCredits)
+creditsButton.grid(column=0, row=5, sticky=tk.W, padx=5, pady=5)
 
-goldLabel = tk.Label(infosFrame, text="Or : 0")
-goldLabel.grid(column=1, row=3, sticky=tk.W, padx=5, pady=5)
-
-autoclickerLabel = tk.Label(infosFrame, text="Ouvriers : 0")
-autoclickerLabel.grid(column=1, row=4, sticky=tk.W, padx=5, pady=5)
 
 "------------------------------------CODE------------------------------------"
 
@@ -380,6 +417,11 @@ sideMenu.grid_propagate(False)
 """
 End side menu
 """
+
+#saveFeature()
+
+def test():
+    print("saved")
 
 #changed from gameWindow.gameloop to this because allows to make our own game loop
 while 1:
