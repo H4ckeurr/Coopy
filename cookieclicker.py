@@ -6,6 +6,7 @@ from os import getlogin
 from time import time, sleep
 import openpyxl
 import threading
+import json
 
 #Main window declaration and configuration
 gameWindow = tk.Tk()
@@ -13,25 +14,120 @@ gameWindow.title("Coopy Clicker")
 gameWindow.geometry("500x430")
 gameWindow.resizable(False, False)
 
+#Had to make some compromises to get everything working :(
+formatNumbers = tk.IntVar()
+language = "Français"
+with open('assets/localization.json', encoding='utf-8') as lang:
+    localization = json.load(lang)
+
 startTime = time()
 saveTime = time()
 
 gold = 0
+totalCookies = 0
 
 saveInterval = 30
 
 "------------------------------------FUNCTION------------------------------------"
+
+
+#This'll load everything from the Excel file
+def loadFeature():
+    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, counterLabel, saveInterval, language, formatNumbers
+    workbook = openpyxl.load_workbook('save.xlsx')
+    ws = workbook.active
+    gold = ws['A2'].value
+    totalCookies = ws['B2'].value
+    goldUpgradeNumber = ws['C2'].value
+    autoClickerAmount = ws['D2'].value
+    saveInterval = ws['E2'].value
+    goldsForAutoClicker = ws['F2'].value
+    goldsForGoldUpgrade = ws['G2'].value
+    formatNumbers.set(ws['H2'].value)
+    language = ws['I2'].value
+    cheatCodeUsage = ws['J2'].value
+    print("loaded")
+    #counterLabel.config(text=f"{totalCookies}")
+
+#Write stats to Excel file
+def saveFeature():
+    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, saveInterval,saveTime, formatNumbers, language
+    if((time() - saveTime) > saveInterval):
+        saveTime = time()
+        try:
+            workbook = openpyxl.load_workbook('save.xlsx')
+            ws = workbook.active
+            ws['A1'] = "Gold"
+            ws['A2'] = gold
+            ws['B1'] = "Cookies"
+            ws['B2'] = totalCookies
+            ws['C1'] = "Click power"
+            ws['C2'] = goldUpgradeNumber
+            ws['D1'] = "Amount of Autoclickers"
+            ws['D2'] = autoClickerAmount
+            ws['E1'] = "Save interval"
+            ws['E2'] = saveInterval
+            ws['F1'] = "Autoclicker Price"
+            ws['F2'] = goldsForAutoClicker
+            ws['G1'] = "GoldUpgrade Price"
+            ws['G2'] = goldsForGoldUpgrade
+            ws['H1'] = "Format Numbers"
+            ws['H2'] = formatNumbers.get()
+            ws['I1'] = "Language"
+            ws['I2'] = language
+            ws['J1'] = "Amount of cheat codes used"
+            ws['J2'] = cheatCodeUsage
+            workbook.save('save.xlsx')
+            print("saved")
+        except:
+            workbook = openpyxl.Workbook()
+            ws = workbook.active
+            ws['A1'] = "Gold"
+            ws['A2'] = 0
+            ws['B1'] = "Cookies"
+            ws['B2'] = 0
+            ws['C1'] = "Click power"
+            ws['C2'] = 5
+            ws['D1'] = "Amount of autoclickers"
+            ws['D2'] = 0
+            ws['E1'] = "Save interval"
+            ws['E2'] = 30
+            ws['F1'] = "Autoclicker Price"
+            ws['F2'] = 50
+            ws['G1'] = "GoldUpgrade Price"
+            ws['G2'] = 10
+            ws['H1'] = "Format Numbers"
+            ws['H2'] = 1
+            ws['I1'] = "Language"
+            ws['I2'] = "Français"
+            ws['J1'] = "Amount of cheat codes used"
+            ws['J2'] = 0
+            workbook.save(filename = 'save.xlsx')
+            print("created")
+
+#Load in values
+try:
+    loadFeature()
+except Exception as e:
+    print(f"?? {e}")
+
 def activateCheatCode():
     global cheatCode, gold, cheatCodeUsage
     if (cheatCode.get() == "iamrich"):
         gold = 1000000
         cheatCodeUsage += 1
-        messagebox.showinfo("Succès", "Code de triche activé")
+        messagebox.showinfo(f"{localization[language]['success']}", f"{localization[language]['cheat_code_success']}")
     else:
-        messagebox.showerror("Erreur", "Code inconnu")
+        messagebox.showerror(f"{localization[language]['error']}", f"{localization[language]['cheat_code_failed']}")
+
+def changeLanguage(args):
+    global selectedLanguage, language
+    language = selectedLanguage.get()
+    messagebox.showinfo("", f"{localization[language]['restart']}")
+
+
 
 valuelist = [2, 10, 30, 45, 60, 120]
-
 def setSaveInterval(value):
     global saveIntervalSlider, valuelist, saveInterval
     saveInterval = min(valuelist, key=lambda x:abs(x-int(value)))
@@ -63,10 +159,10 @@ def contract():
 def fill():
     if expanded:
         # Show a text and remove the image
-        homeButton.config(text="Accueil", image="", width=14)
-        shopButton.config(text="Améliorations", image="", width=14)
-        settingsButton.config(text="Paramètres", image="", width=14)
-        credits.config(text=f"Coopy Clicker\n\nDéveloppé par\nBrayan\nAlex\nYassine")
+        homeButton.config(text=f"{localization[language]['home']}", image="", width=14)
+        shopButton.config(text=f"{localization[language]['upgrades']}", image="", width=14)
+        settingsButton.config(text=f"{localization[language]['settings']}", image="", width=14)
+        credits.config(text=f"{localization[language]['devs']}")
 
     else:
         # Bring the image back
@@ -76,7 +172,7 @@ def fill():
         credits.config(text=f"")
 
 def showCredits():
-    messagebox.showinfo("Crédits et Remerciements", "Ressouces :\nIcônes : icons8.com\nCookie principal : Google Images\nQuelques bouts de code : stackoverflow.com\n\nRemerciements :\numi : Support moral <3")
+    messagebox.showinfo(f"{localization[language]['credits']}", f"{localization[language]['actual_credits']}")
 
 """
 Depending on if you have enough gold or not the button will change to red or green when hovered, seems to only work on Windows tho so I did not implement it
@@ -120,17 +216,17 @@ def showShopFrame():
     moreAutoclickerUpgrade.grid(column=1, row=1, sticky=tk.E, padx=40, pady=5)
 
     moreGoldInfoLabel = tk.Label(moreGoldUpgrade,
-                                 text=f"Augemente l'or par clic\nActuel : {format_number(goldUpgradeNumber)} or par clic\nCoûte : {format_number(goldsForGoldUpgrade)} or")
+        text=f"{localization[language]['more_gold_per_click']}\n{localization[language]['actual']} : {format_number(goldUpgradeNumber)} {localization[language]['gold_per_click']}\n{localization[language]['costs']} : {format_number(goldsForGoldUpgrade)} {localization[language]['gold']}")
     moreGoldInfoLabel.grid(column=1, row=0, sticky=tk.W, padx=5, pady=5)
-    moreGold = tk.Button(moreGoldUpgrade, text=f"Améliorer", width=15)
+    moreGold = tk.Button(moreGoldUpgrade, text=f"{localization[language]['upgrade']}", width=15)
     moreGold.grid(column=1, row=1, sticky=tk.S, padx=5, pady=5)
     moreGold.bind("<ButtonRelease-1>", upgradeGold)
     moreGold.bind("<Leave>", leave)
 
     moreAutoclickerInfoLabel = tk.Label(moreAutoclickerUpgrade,
-                                        text=f"Un ouvrier qui génère 1 d'or/s\nActuel : {format_number(autoClickerAmount)} or/s\nCoûte : {format_number(goldsForAutoClicker)} or")
+        text=f"{localization[language]['worker_desc']}\n{localization[language]['actual']} : {format_number(autoClickerAmount)} {localization[language]['gold_per_second']}\n{localization[language]['costs']} : {format_number(goldsForAutoClicker)} {localization[language]['gold']}")
     moreAutoclickerInfoLabel.grid(column=1, row=0, sticky=tk.W, padx=5, pady=5)
-    moreAutoClicker = tk.Button(moreAutoclickerUpgrade, text=f"Améliorer", width=20)
+    moreAutoClicker = tk.Button(moreAutoclickerUpgrade, text=f"{localization[language]['upgrade']}", width=20)
     moreAutoClicker.grid(column=1, row=1, sticky=tk.W, padx=5, pady=5)
     moreAutoClicker.bind("<ButtonRelease-1>", upgradeAutoClicker)
     moreAutoClicker.bind("<Leave>", leave)
@@ -166,7 +262,7 @@ def upgradeAutoClicker(event):
         goldsForAutoClicker = int(goldsForAutoClicker)
         autoClickerAmount += 1
     moreAutoclickerInfoLabel.config(
-        text=f"Un ouvrier qui génère 1 d'or/s\nActuel : {format_number(autoClickerAmount)} or/s\nCoûte : {format_number(goldsForAutoClicker)} or")
+        text=f"{localization[language]['worker_desc']}\n{localization[language]['actual']} : {format_number(autoClickerAmount)} {localization[language]['gold_per_second']}\n{localization[language]['costs']} : {format_number(goldsForAutoClicker)} {localization[language]['gold']}")
     autoclickerLabel.config(text=f"{format_number(autoClickerAmount)}")
 
 def autoClicker(event):
@@ -191,7 +287,7 @@ def upgradeGold(event):
         goldsForGoldUpgrade *= 2.5
         goldsForGoldUpgrade = int(goldsForGoldUpgrade)
     moreGoldInfoLabel.config(
-        text=f"Augemente l'or par clic\nActuel : {format_number(goldUpgradeNumber)} or par clic\nCoûte : {format_number(goldsForGoldUpgrade)} or")
+        text=f"{localization[language]['more_gold_per_click']}\n{localization[language]['actual']} : {format_number(goldUpgradeNumber)} {localization[language]['gold_per_click']}\n{localization[language]['costs']} : {format_number(goldsForGoldUpgrade)} {localization[language]['gold']}")
     counterLabel.config(text=f"{format_number(totalCookies)}")
     goldLabel.config(text=f"{format_number(gold)}")
 
@@ -222,75 +318,6 @@ def openShop():
 def setCounter(args):
     counterLabel.config(text=f"{format_number(totalCookies)}")
 
-def loadFeature():
-    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, counterLabel, saveInterval, formatNumbers
-    workbook = openpyxl.load_workbook('save.xlsx')
-    ws = workbook.active
-    gold = ws['A2'].value
-    totalCookies = ws['B2'].value
-    goldUpgradeNumber = ws['C2'].value
-    autoClickerAmount = ws['D2'].value
-    saveInterval = ws['E2'].value
-    goldsForAutoClicker = ws['F2'].value
-    goldsForGoldUpgrade = ws['G2'].value
-    formatNumbers.set(ws['H2'].value)
-    cheatCodeUsage = ws['J2'].value
-    print("loaded")
-    counterLabel.config(text=f"{totalCookies}")
-
-    
-def saveFeature():
-    global gold, goldUpgradeNumber,autoClickerAmount,totalCookies, goldsForAutoClicker, goldsForGoldUpgrade, cheatCodeUsage, saveInterval,saveTime, formatNumbers
-    if((time() - saveTime) > saveInterval):
-        saveTime = time()
-        try:
-            workbook = openpyxl.load_workbook('save.xlsx')
-            ws = workbook.active
-            ws['A1'] = "Gold"
-            ws['A2'] = gold
-            ws['B1'] = "Cookies"
-            ws['B2'] = totalCookies
-            ws['C1'] = "Click power"
-            ws['C2'] = goldUpgradeNumber
-            ws['D1'] = "Amount of Autoclickers"
-            ws['D2'] = autoClickerAmount
-            ws['E1'] = "Save interval"
-            ws['E2'] = saveInterval
-            ws['F1'] = "Autoclicker Price"
-            ws['F2'] = goldsForAutoClicker
-            ws['G1'] = "GoldUpgrade Price"
-            ws['G2'] = goldsForGoldUpgrade
-            ws['H1'] = "Format Numbers"
-            ws['H2'] = formatNumbers.get()
-            ws['J1'] = "Amount of cheat codes used"
-            ws['J2'] = cheatCodeUsage
-            workbook.save('save.xlsx')
-            print("saved")
-        except:
-            workbook = openpyxl.Workbook()
-            ws = workbook.active
-            ws['A1'] = "Gold"
-            ws['A2'] = 0
-            ws['B1'] = "Cookies"
-            ws['B2'] = 0
-            ws['C1'] = "Click power"
-            ws['C2'] = 5
-            ws['D1'] = "Amount of autoclickers"
-            ws['D2'] = 0
-            ws['E1'] = "Save interval"
-            ws['E2'] = 30
-            ws['F1'] = "Autoclicker Price"
-            ws['F2'] = 50
-            ws['G1'] = "GoldUpgrade Price"
-            ws['G2'] = 10
-            ws['H1'] = "Format Numbers"
-            ws['H2'] = 1
-            ws['J1'] = "Amount of cheat codes used"
-            ws['J2'] = 0
-            workbook.save(filename = 'save.xlsx')
-            print("created")
-
-
 
 "------------------------------------VARIABLES------------------------------------"
 #Declaring main logic variables
@@ -318,24 +345,29 @@ saveIntervalSlider.set(saveInterval)
 #Global settings
 globalSettingsFrame = tk.Frame(settingsFrame, borderwidth=2, relief=tk.GROOVE)
 globalSettingsFrame.grid(column=0, row=1, sticky=tk.W, padx=5, pady=5)
-formatNumbers = tk.IntVar()
-formatNumbers.set(1)
-formatNumbersCB = tk.Checkbutton(globalSettingsFrame, text="Formatter les nombres", onvalue=1, offvalue=0, variable=formatNumbers)
+formatNumbersCB = tk.Checkbutton(globalSettingsFrame, text=f"{localization[language]['format_numbers']}", onvalue=1, offvalue=0, variable=formatNumbers)
 formatNumbersCB.grid(column=0, row=1, sticky=tk.W, padx=5, pady=5)
+selectLanguageLabel = tk.Label(globalSettingsFrame, text=f"{localization[language]['select_language']}")
+selectLanguageLabel.grid(column=0, row=2, sticky=tk.W, padx=5, pady=5)
+selectedLanguage = tk.StringVar()
+languageList = ["Français", "English"]
+selectedLanguage.set(language)
+languageDropdown = tk.OptionMenu(globalSettingsFrame, selectedLanguage, *languageList, command=changeLanguage)
+languageDropdown.grid(column=0, row=3, sticky=tk.W, padx=5, pady=5)
 
 #Cheat Code Category
 cheatFrame = tk.Frame(settingsFrame, borderwidth=2, relief=tk.GROOVE)
 cheatFrame.grid(column=0, row=2, sticky=tk.W, pady=10)
-cheatLabel = tk.Label(cheatFrame, text=f"Activer code de triche")
+cheatLabel = tk.Label(cheatFrame, text=f"{localization[language]['activate_cheat_code']}")
 cheatLabel.grid(column=0, row=0, sticky=tk.W, padx=5, pady=5)
 cheatCode = tk.StringVar()
 cheatEntry = tk.Entry(cheatFrame, textvariable=cheatCode)
 cheatEntry.grid(column=1, row=0, sticky=tk.W, padx=5, pady=5)
-cheatButton = tk.Button(cheatFrame, text=f"Activer", command=activateCheatCode)
+cheatButton = tk.Button(cheatFrame, text=f"{localization[language]['activate']}", command=activateCheatCode)
 cheatButton.grid(column=1, row=1, sticky=tk.W, padx=5, pady=5)
 
 #Shop display
-shopGoldLabel = tk.Label(itemShop, text=f"Or : {format_number(gold)}")
+shopGoldLabel = tk.Label(itemShop, text=f"{localization[language]['gold']} : {format_number(gold)}")
 shopGoldLabel.grid(column=1, row=0, sticky=tk.W, padx=5, pady=5)
 
 # Define the icons to be shown
@@ -383,13 +415,13 @@ shopButton.grid(column=0, row=1)
 settingsButton = tk.Button(sideMenu, image=settingsImage, bg="orange", relief=tk.FLAT, command=showSettingsFrame)
 settingsButton.grid(column=0, row=2, pady=10)
 
-saveLabel = tk.Label(savingFrame, text="Intervale de sauvegarde(en secondes)")
+saveLabel = tk.Label(savingFrame, text=f"{localization[language]['save_interval']}")
 saveLabel.grid(column=0, row=0, sticky=tk.W, padx=5, pady=5)
 
-warningLabel = tk.Label(savingFrame, text="La valeur minimal (2s) n'est PAS RECOMMANDÉE!!!")
+warningLabel = tk.Label(savingFrame, text=f"{localization[language]['optifine_wink']}")
 warningLabel.grid(column=0, row=2, sticky=tk.W, padx=5, pady=5)
 
-creditsButton = tk.Button(settingsFrame, text="Remerciements/Credits", command=showCredits)
+creditsButton = tk.Button(settingsFrame, text=f"{localization[language]['credits']}", command=showCredits)
 creditsButton.grid(column=0, row=5, sticky=tk.W, padx=5, pady=5)
 
 """
@@ -398,8 +430,6 @@ loadButton = tk.Button(settingsFrame, text="Charger la sauvegarde!", command=loa
 loadButton.grid(column=0, row=3, pady=10)
 """
 "------------------------------------CODE------------------------------------"
-
-totalCookies = 0
 
 randomAmountOfGold = 0
 moreGold = None
@@ -434,11 +464,6 @@ sideMenu.grid_propagate(False)
 """
 End side menu
 """
-
-try:
-    loadFeature()
-except Exception as e:
-    print("Erreur lors du chargement de la sauvegarde: %s" % e)
 
 #changed from gameWindow.gameloop to this because allows to make our own game loop
 while 1:
