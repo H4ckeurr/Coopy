@@ -2,7 +2,6 @@
 import tkinter as tk
 from tkinter import messagebox
 from random import randint as random
-from os import getlogin
 from time import time, sleep
 import openpyxl
 import json
@@ -136,9 +135,9 @@ try:
         totalCookies += int(lostTime) * autoClickerAmount
         gold += int(lostTime) * autoClickerAmount
         if(language == "English"):
-            messagebox.showinfo("",f"You gained {int(lostTime) * autoClickerAmount} cookies and {int(lostTime) * autoClickerAmount} gold while you were away!")
+            messagebox.showinfo("",f"You've gained {int(lostTime) * autoClickerAmount} cookies and {int(lostTime) * autoClickerAmount} gold while you were away")
         else:
-            messagebox.showinfo("",f"Vous avez obtenu {int(lostTime) * autoClickerAmount} cookies et {int(lostTime) * autoClickerAmount} or pendant que vous etiez partis!")
+            messagebox.showinfo("",f"Vous avez obtenu {int(lostTime) * autoClickerAmount} cookies et {int(lostTime) * autoClickerAmount} or pendant votre absence")
 except Exception as e:
     print(f"?? {e}")
 
