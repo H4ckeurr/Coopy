@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import messagebox
 from random import randint as random
 from time import time, sleep
+from platform import system
 import openpyxl
 import json
 import smtplib
@@ -473,6 +474,9 @@ warningLabel.grid(column=0, row=2, sticky=tk.W, padx=5, pady=5)
 
 creditsButton = tk.Button(settingsFrame, text=f"{localization[language]['credits']}", command=showCredits)
 creditsButton.grid(column=0, row=5, sticky=tk.W, padx=5, pady=5)
+
+osLabel = tk.Label(settingsFrame, text=f"Coopy Clicker | {system()}")
+osLabel.grid(column=0, row=6, sticky=tk.W, padx=5, pady=5)
 
 sendButton = tk.Button(settingsFrame, text=f"{localization[language]['send']}", command=sendEmail)
 sendButton.grid(column=0, row=5, sticky=tk.E, padx=5, pady=5)
