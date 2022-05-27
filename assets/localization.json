@@ -27,7 +27,9 @@
       "save_error": "Erreur lors du chargement de la sauvegarde",
       "restart": "Vous devez peut-être redémarrer le jeu afin que tous les changements soient pris en compte",
       "devs": "Coopy Clicker\n\nDéveloppé par\nBrayan\nAlex\nYassine",
-      "actual_credits": "Ressouces :\nIcônes : icons8.com\nCookie principal : Google Images\nQuelques bouts de code : stackoverflow.com\n\nRemerciements :\numi : Support moral <3"
+      "actual_credits": "Ressouces :\nIcônes : icons8.com\nCookie principal : Google Images\nQuelques bouts de code : stackoverflow.com\n\nRemerciements :\numi : Support moral <3",
+      "sent":"Email envoyé!",
+      "send":"Envoyer email"
   },
   "English": {
       "home": "Home",
@@ -53,10 +55,12 @@
       "activate": "Activate",
       "save_interval": "Save interval(in seconds)",
       "optifine_wink": "The minimal value(2s) is NOT RECOMMENDED!!!",
-      "credits": "Credits and Acknowledgements",
+      "credits": "Credits and Thanks",
       "save_error": "Error while loading backup",
       "restart": "You may need to restart the game for all changes to take effect",
       "devs": "Coopy Clicker\n\nDevelopped by\nBrayan\nAlex\nYassine",
-      "actual_credits": "Resources:\nIcons: icons8.com\nMain cookie: Google Images\nSome code snippets : stackoverflow.com\n\nSpecial Thanks :\nMoral support <3"
+      "actual_credits": "Resources:\nIcons: icons8.com\nMain cookie: Google Images\nSome code snippets : stackoverflow.com\n\nSpecial Thanks :\nMoral support <3",
+      "sent":"Email sent!",
+      "send":"Send email"
   }
 }
